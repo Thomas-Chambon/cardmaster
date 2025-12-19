@@ -8,9 +8,13 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from tavily import TavilyClient
 from urllib.parse import quote
-import requests
+import requests, hashlib, json, os
+from dotenv import load_dotenv, set_key, find_dotenv
 
-from .config import RAGConfig, TAVILY_API_KEY, get_logger
+env_path = find_dotenv()
+load_dotenv()
+
+from .config import RAGConfig, TAVILY_API_KEY, HASH_CONFIG_FILE, CONFIG_FILE, get_logger
 from .document_loader import DocumentLoader
 
 logger = get_logger(__name__)
@@ -31,6 +35,33 @@ class RAGEngine:
             self.embeddings = HuggingFaceEmbeddings(
                 model_name=RAGConfig.EMBEDDING_MODEL
             )
+
+    def compare_configs(self, original_hash = HASH_CONFIG_FILE, config_file = CONFIG_FILE) -> bool:
+        """
+        Compare the new configuration with the existing one to check for changes.
+
+        Args:
+            new_config: The new configuration dictionary.
+
+        Returns:
+            True if configurations differ, False otherwise.
+        """
+
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                new_config = json.load(f)
+                hash_new_config = hashlib.sha256(json.dumps(new_config, sort_keys=True).encode('utf-8')).hexdigest()
+
+        except FileNotFoundError:
+            logger.info("No existing config hash file found. Assuming no changes.")
+            return True
+
+        if original_hash != hash_new_config:
+            logger.info("Configuration changes detected.")
+            return True
+        
+        logger.info("No configuration changes detected.")
+        return False
 
     def _split_documents(self, docs: List[Document]) -> List[Document]:
         """
