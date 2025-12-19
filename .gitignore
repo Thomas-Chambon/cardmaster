@@ -1,0 +1,23 @@
+# Log files
+*.log
+
+# Environment files
+.env
+venv/
+.venv/
+
+# IDE files
+.vscode/
+
+# MacOS files
+.DS_Store
+
+# Python files
+__pycache__/
+*.pyc
+
+# Database and cache files
+chroma_db_cache/
+langchain.db
+
+evaluation/

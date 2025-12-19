@@ -1,0 +1,216 @@
+"""RAG engine for document retrieval."""
+from typing import List
+import streamlit as st
+from chromadb import PersistentClient
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from tavily import TavilyClient
+from urllib.parse import quote
+import requests
+
+from .config import RAGConfig, TAVILY_API_KEY, get_logger
+from .document_loader import DocumentLoader
+
+logger = get_logger(__name__)
+
+class RAGEngine:
+    """Retrieval-Augmented Generation engine."""
+    
+    def __init__(self):
+        self.embeddings = None
+        self.vector_store = None
+        self.document_loader = DocumentLoader()
+        logger.info("RAGEngine initialized")
+    
+    def _initialize_embeddings(self):
+        """Initialize embedding model."""
+        
+        if self.embeddings is None:
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name=RAGConfig.EMBEDDING_MODEL
+            )
+
+    def _split_documents(self, docs: List[Document]) -> List[Document]:
+        """
+        Split documents into chunks using a fast recursive approach.
+        This version removes SemanticChunker for maximum performance.
+
+        Args:
+            docs: List of documents to split.
+
+        Returns:
+            List of document chunks.
+        """
+        logger.info("Starting document splitting process...")
+        
+        # Standard fast recursive splitter
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=RAGConfig.CHUNK_SIZE,
+            chunk_overlap=RAGConfig.CHUNK_OVERLAP,
+            separators=RAGConfig.SEPARATORS,
+        )
+
+        with st.status("Ingesting knowledge base...", expanded=True) as status:
+            st.write("Initializing text splitter...")
+            
+            final_chunks = []
+            total_docs = len(docs)
+            
+            progress_bar = st.progress(0, text="Processing documents...")
+            
+            for i, doc in enumerate(docs):
+                # Split the individual document
+                doc_chunks = splitter.split_documents([doc])
+                final_chunks.extend(doc_chunks)
+                
+                # Update progress bar
+                progress = (i + 1) / total_docs
+                progress_bar.progress(
+                    progress, 
+                    text=f"Splitting: {int(progress * 100)}% (Document {i+1}/{total_docs})"
+                )
+                
+            # Final UI updates
+            progress_bar.empty()
+            status.update(
+                label=f"✅ Success! {len(final_chunks)} chunks generated.", 
+                state="complete", 
+                expanded=False
+            )
+
+        logger.info(f"Splitting complete. Total chunks created: {len(final_chunks)}")
+        return final_chunks
+    
+    @st.cache_resource(ttl=None)
+    def initialize_vector_store(_self) -> Chroma:
+        """Initialize or retrieve the vector store.
+        
+        Returns:
+            Initialized vector store.
+        """
+        
+        if _self.vector_store is not None:
+            return _self.vector_store
+        
+        embeddings = _self._initialize_embeddings()
+
+        client = PersistentClient(path=RAGConfig.CHROMA_PATH)
+
+        try:
+        # Try to load existing collection
+            vector_store = Chroma(
+                client=client,
+                collection_name="cardmaster_index",
+                embedding_function=embeddings
+            )
+            # Check if collection has documents
+            if vector_store._collection.count() > 0:
+                st.success(f"Index ChromaDB load from hard disk!")
+                return vector_store
+        
+        except Exception:
+            # If collection does not exist, create a new one
+            logger.info("No existing ChromaDB collection found. Creating a new one.")
+        
+        st.info("No existing ChromaDB collection found. Index creation may take time...")
+        
+        # Load and split documents
+        documents = _self.document_loader.load_all_documents()
+        chunks = _self._split_documents(documents)
+
+
+        # Create vector store
+        _self.vector_store = Chroma.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            client=client,
+            collection_name="cardmaster_index"
+        )
+        logger.info("Index created and persisted successfully.")
+        st.success("Index created and persisted successfully.")
+        logger.info(f"Vector store initialized with {vector_store._collection.count()} chunks.")
+        
+        return _self.vector_store
+    
+    def retrieve_context(self, query: str, k: int = None) -> str:
+        """Retrieve relevant context for a query.
+        
+        Args:
+            query: User query.
+            k: Number of documents to retrieve.
+            
+        Returns:
+            Serialized context from retrieved documents.
+        """
+        if self.vector_store is None:
+            self.vector_store = self.initialize_vector_store()
+        
+        k = k or RAGConfig.SIMILARITY_TOP_K
+        retrieved_docs = self.vector_store.similarity_search(query, k=k)
+        
+        # Serialize results
+        serialized = "\n\n".join(
+            f"Source: {doc.metadata.get('source', 'Unknown')}\n"
+            f"Content: {doc.page_content}"
+            for doc in retrieved_docs
+        )
+        
+        return serialized
+
+    def search_price_card(self, game_name: str, card_name: str) -> str:
+        """
+        Get market prices (MTG) or craft costs/meta data (Hearthstone).
+        Args:
+            game_name: The name of the game.
+            card_name: The exact name of the card.
+        Returns:
+            Formatted string with price or craft cost information.
+        """
+
+        # MAGIC THE GATHERING (Scryfall API)
+        if game_name == "Magic The Gathering":
+            logger.info(f"Searching MTG price for card: {card_name}")
+            try:
+                url = f"https://api.scryfall.com/cards/named?exact={quote(card_name)}"
+                response = requests.get(url, timeout=5)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    p = data.get('prices', {})
+                    return (f"MTG Price for {data['name']}:\n"
+                            f"- Normal: {p.get('eur', 'N/A')}€ | Foil: {p.get('eur_foil', 'N/A')}€\n"
+                            f"- View: {data.get('scryfall_uri')}")
+                logger.info(f"Card '{card_name}' not found on Scryfall.")
+
+            except Exception as e:
+                logger.error(f"MTG API Error: {str(e)}")
+
+        # HEARTHSTONE (Tavily Search)
+        elif game_name == "Hearthstone":
+            logger.info(f"Searching Hearthstone data for card: {card_name}")
+            try:
+                
+                tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
+                raw_results = tavily_client.search(f"Find the \"cost to craft\" for {card_name} Hearthstone card", max_results=3)
+                    
+                logger.info(f"Tavily raw results: {raw_results}")
+
+                # Format results
+                if len(raw_results['results']) > 0:
+                    details = "\n".join([f"- {res['content']} (Source: {res['url']})" for res in raw_results['results']])
+                        
+                else:
+                    details = "No cost to craft information found."
+
+                link = f"https://www.hearthpwn.com/cards?filter-name={card_name}" 
+                return (f"Hearthstone Info for '{card_name}':\n{details}\n"
+                        f"- Source Link: {link}")
+
+            except Exception as e:
+                logger.error(f"Tavily Error: {str(e)}")
+                return f"Manual search link for {card_name}: https://www.hearthpwn.com/cards?filter-name={card_name}"
+
+            
+    

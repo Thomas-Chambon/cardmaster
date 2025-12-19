@@ -1,0 +1,33 @@
+{
+  "urls": {
+    "magic": [
+      "https://www.play-in.com/fr/articles/1-magic/guide/comment-jouer-au-jeu-de-cartes-magic.html",
+      "https://magic.wizards.com/fr/how-to-play",
+      "https://topdeck.gg/bracket/TopDeckInvi25",
+      "https://mtgdecks.net/Standard/metagame:last-2-years",
+      "https://www.mtggoldfish.com/format-staples/standard",
+      "https://www.mtggoldfish.com/format-staples/duel_commander",
+      "https://www.mtggoldfish.com/prices/paper/standard",
+      "https://www.mtggoldfish.com/metagame/standard#paper",
+      "https://www.mtggoldfish.com/metagame/duel_commander#",
+      "https://www.mtgtop8.com/format?f=EDH&meta=56&a="
+    ],
+    "hearthstone": [
+      "https://hearthstone.blizzard.com/fr-fr/cards",
+      "https://hsreplay.net/decks/",
+      "https://www.millenium.org/guide/169179.html",
+      "https://www.millenium.org/guide/119855.html",
+      "https://www.millenium.org/guide/169179.html#theorycraft-nouvelle-extension-quotpar-dela-les-voies-temporellesquot-meilleurs-decks",
+      "https://www.millenium.org/guide/169179.html#les-meilleurs-decks-hearthstone-en-standard-octobre-2025",
+      "https://hearthstone.judgehype.com/article/evenements/",
+      "https://hearthstone.blizzard.com/fr-fr/expansions-adventures/",
+      "https://en.wikipedia.org/wiki/Hearthstone_expansions"
+    ]
+  },
+  "pdfs": [
+    "magic_rules_2025.pdf",
+    "Hearthstone_Guide.pdf",
+    "Hearthstone_expansions.pdf"
+  ]
+}
+
