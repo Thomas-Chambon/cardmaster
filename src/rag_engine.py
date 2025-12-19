@@ -114,55 +114,76 @@ class RAGEngine:
         logger.info(f"Splitting complete. Total chunks created: {len(final_chunks)}")
         return final_chunks
     
+    def generate_ids(self, final_chunks: List[Document]) -> List[str]:
+        """Generate unique IDs for each document chunk.
+        Args:
+            final_chunks: List of document chunks.
+        Returns:
+            List of unique IDs.
+        """
+        logger.info("Generating unique IDs for document chunks...")
+        ids = []
+        for chunk in final_chunks:
+            header = chunk.page_content.encode('utf-8')
+            chunk_id = hashlib.sha256(header).hexdigest()
+            ids.append(chunk_id)
+
+        logger.info("ID generation complete for all chunks.")
+        return ids
+
     @st.cache_resource(ttl=None)
     def initialize_vector_store(_self) -> Chroma:
-        """Initialize or retrieve the vector store.
-        
+        """Initialize or load the Chroma vector store.
+
         Returns:
-            Initialized vector store.
+            Chroma vector store instance.
         """
-        
         if _self.vector_store is not None:
             return _self.vector_store
         
         embeddings = _self._initialize_embeddings()
-
         client = PersistentClient(path=RAGConfig.CHROMA_PATH)
-
-        try:
-        # Try to load existing collection
-            vector_store = Chroma(
-                client=client,
-                collection_name="cardmaster_index",
-                embedding_function=embeddings
-            )
-            # Check if collection has documents
-            if vector_store._collection.count() > 0:
-                st.success(f"Index ChromaDB load from hard disk!")
-                return vector_store
         
-        except Exception:
-            # If collection does not exist, create a new one
-            logger.info("No existing ChromaDB collection found. Creating a new one.")
+        # Load current config for hashing
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            current_config_data = json.load(f)
         
-        st.info("No existing ChromaDB collection found. Index creation may take time...")
+        # New hash calculation
+        new_hash = hashlib.sha256(json.dumps(current_config_data, sort_keys=True).encode('utf-8')).hexdigest()
         
-        # Load and split documents
-        documents = _self.document_loader.load_all_documents()
-        chunks = _self._split_documents(documents)
+        # Check hash to see if sources changed
+        stored_hash = os.getenv("HASH_CONFIG_FILE")
+        update_sources = (stored_hash != new_hash)
 
-
-        # Create vector store
-        _self.vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
+        # Chroma vector store initialization
+        vector_store = Chroma(
             client=client,
-            collection_name="cardmaster_index"
+            collection_name="cardmaster_index",
+            embedding_function=embeddings
         )
-        logger.info("Index created and persisted successfully.")
-        st.success("Index created and persisted successfully.")
-        logger.info(f"Vector store initialized with {vector_store._collection.count()} chunks.")
-        
+
+        # Update or initialize vector store if needed
+        if update_sources or vector_store._collection.count() == 0:
+            reason = "Sources changed, updating" if update_sources else "Index empty, initializing"
+            logger.info(f"{reason} vector store...")
+            st.info(f"{reason}, this may take some time.")
+
+            documents = _self.document_loader.load_all_documents()
+            chunks = _self._split_documents(documents)
+            ids = _self.generate_ids(chunks)
+
+            # Add documents to vector store
+            vector_store.add_documents(documents=chunks, ids=ids)
+            
+            # Update stored hash
+            set_key(find_dotenv(), "HASH_CONFIG_FILE", new_hash)
+            st.success("Index updated and hash saved.")
+
+        else:
+            logger.info("Loading existing vector store from disk.")
+            st.success("Index loaded from disk (no changes detected).")
+
+        _self.vector_store = vector_store
         return _self.vector_store
     
     def retrieve_context(self, query: str, k: int = None) -> str:
