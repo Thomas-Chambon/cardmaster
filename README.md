@@ -73,6 +73,7 @@ LANGSMITH_ENDPOINT=your-langsmith-endpoint-here  (example: https://eu.api.smith.
 LANGSMITH_API_KEY=your-langsmith-key-here
 LANGSMITH_PROJECT=your-langsmith-project-name
 HUGGINGFACE_API_KEY=your-huggingface-key-here
+HASH_CONFIG_FILE= (Set during first run)
 ```
 
 Please visit the following sites to obtain your API keys:
@@ -90,6 +91,26 @@ To launch the user interface:
 ```bash
 streamlit run ui/app.py
 ```
+
+## Adding sources to the RAG
+
+CardMaster AI features a dynamic indexing system. You can expand the knowledge base by modifying the `rag_sources/config.json` file. The system will automatically detect these changes using SHA-256 hashing and update the vector store accordingly.
+
+1. Supported Source Types
+
+    Local PDFs: Place your files in the `rag_sources/` directory.
+
+    Web URLs: Provide direct links to official rulebooks, card databases, or strategy articles.
+
+2. Automatic Synchronization
+
+Once you save the `config.json` file:
+
+The RAG Engine detects a mismatch between the current file hash and the `HASH_CONFIG_FILE` stored in your `.env`.
+
+It triggers the `document_loader.py` to fetch new content.
+
+New deterministic IDs are generated for the chunks to ensure an "upsert" (update or insert) operation in ChromaDB, preventing any data duplication.
 
 ## License
 
