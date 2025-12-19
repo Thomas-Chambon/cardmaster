@@ -23,7 +23,7 @@ class LLMService:
             api_key=MISTRAL_API_KEY,
             max_tokens=ModelConfig.MAX_TOKENS,
             temperature=ModelConfig.TEMPERATURE,
-            timeout=60
+            timeout=120
         )
     
     @staticmethod
@@ -40,7 +40,7 @@ class LLMService:
             api_key=OPENAI_API_KEY,
             max_tokens=ModelConfig.MAX_TOKENS,
             temperature=ModelConfig.TEMPERATURE,
-            timeout=60
+            timeout=120
         )
     
     @staticmethod
