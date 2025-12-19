@@ -13,11 +13,12 @@ BASE_DIR = Path(__file__).parent.parent
 RAG_SOURCES_DIR = BASE_DIR / "rag_sources"
 CONFIG_FILE = RAG_SOURCES_DIR / "config.json"
 
-# API Keys
+# API Keys and Environment Variables
 MISTRAL_API_KEY = os.getenv("MISTRALAI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 USER_AGENT = os.getenv("USER_AGENT", "CardMasterAI/1.0")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+HASH_CONFIG_FILE = os.getenv("HASH_CONFIG_FILE")
 
 # Model Configuration
 class ModelConfig:
