@@ -123,9 +123,9 @@ class RAGEngine:
         """
         logger.info("Generating unique IDs for document chunks...")
         ids = []
-        for chunk in final_chunks:
-            header = chunk.page_content.encode('utf-8')
-            chunk_id = hashlib.sha256(header).hexdigest()
+        for i, chunk in enumerate(final_chunks):
+            unique_string = f"{i}-{chunk.page_content}"
+            chunk_id = hashlib.sha256(unique_string.encode('utf-8')).hexdigest()
             ids.append(chunk_id)
 
         logger.info("ID generation complete for all chunks.")
