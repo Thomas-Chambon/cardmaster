@@ -18,12 +18,12 @@ CardMaster AI is a high-performance Retrieval-Augmented Generation (RAG) assista
 CardMasterAI/
 ├── chroma_db_cache/      # Local persistent vector database (Auto-generated)
 ├── rag_sources/          # Source documents and configuration
-│   ├── config.json       # JSON file listing URLs and PDF paths
+│   ├── config.json       # JSON file listing URLs and PDF paths, JSON paths
 │   └── rules_mtg.pdf     # Example PDF source
 ├── src/
 │   ├── agent_service.py  # Agent orchestration and tool definitions
 │   ├── config.py         # Global settings, logging, and game configurations
-│   ├── document_loader.py # Data loading logic (PDF, Web scraping)
+│   ├── document_loader.py # Data loading logic (PDF, JSON, Web scraping)
 │   ├── llm_service.py    # LLM API connection manager
 │   └── rag_engine.py     # Indexing engine and semantic search logic
 ├── ui/
