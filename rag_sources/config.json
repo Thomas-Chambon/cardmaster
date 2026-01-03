@@ -29,6 +29,10 @@
     "magic_rules_2025.pdf",
     "Hearthstone_Guide.pdf",
     "Hearthstone_expansions.pdf"
+  ],
+  "jsons": [
+    "magic_card_types.json",
+    "magic_keywords.json"
   ]
 }
 
