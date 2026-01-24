@@ -27,7 +27,7 @@ os.environ["USER_AGENT"] = USER_AGENT
 
 @st.cache_resource
 def get_agent_service():
-    """Initialise et met en cache l'objet AgentService."""
+    """Initialize and caches the AgentService object."""
     return AgentService()
 
 def initialize_session_state():
@@ -155,7 +155,7 @@ def main():
                 render_download_button(response, query[:30])
                 
             except Exception as e:
-                st.error(f"Erreur lors de la génération de la réponse : {e}")
+                st.error(f"Error while generating the response: {e}")
 
 
 if __name__ == "__main__":
