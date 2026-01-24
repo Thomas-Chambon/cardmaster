@@ -8,6 +8,7 @@ venv/
 
 # IDE files
 .vscode/
+.idea/
 
 # MacOS files
 .DS_Store
@@ -21,3 +22,4 @@ chroma_db_cache/
 langchain.db
 
 evaluation/
+mcp-server/
