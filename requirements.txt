@@ -15,3 +15,4 @@ Requests==2.32.5
 streamlit==1.52.1
 tavily_python==0.7.17
 jq==1.10.0
+sentence-transformers==5.2.0
