@@ -39,7 +39,7 @@ CardMasterAI/
 ## Technical Stack
 
 * **Framework:** [LangChain](https://www.langchain.com/)
-* **LLMs:** Mistral AI (`mistral-large-latest`) & OpenAI (`gpt-4.1`) (HuggingFace)
+* **LLMs:** Mistral AI (`mistral-large-latest`) & OpenAI (`gpt-5.2`) & Google (`gemini-3.1-pro-preview`) 
 * **Vector Database:** [ChromaDB](https://www.trychroma.com/) (Persistante)
 * **Embeddings:** `Qwen/Qwen3-Embedding-8B` (HuggingFace)
 * **UI:** [Streamlit](https://streamlit.io/)
@@ -80,7 +80,8 @@ Please visit the following sites to obtain your API keys:
 
 - [Mistral AI](https://console.mistral.ai/api-keys/)
 - [OpenAI](https://platform.openai.com/api-keys)
-- [Tavily](https://app.tavily.com/keys) 
+- [Google](https://aistudio.google.com)
+- [Tavily](https://app.tavily.com/keys)
 - [LangSmith (LangChain)](https://smith.langchain.com/settings)
 - [Hugging Face](https://huggingface.co/settings/tokens)
 
