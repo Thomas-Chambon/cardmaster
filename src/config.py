@@ -16,16 +16,19 @@ CONFIG_FILE = RAG_SOURCES_DIR / "config.json"
 # API Keys and Environment Variables
 MISTRAL_API_KEY = os.getenv("MISTRALAI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 USER_AGENT = os.getenv("USER_AGENT", "CardMasterAI/1.0")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 HASH_CONFIG_FILE = os.getenv("HASH_CONFIG_FILE")
+HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
 # Model Configuration
 class ModelConfig:
     """LLM model configuration."""
 
     MISTRAL_MODEL = "mistral-large-latest"
-    OPENAI_MODEL = "gpt-4.1"
+    OPENAI_MODEL = "gpt-5.2"
+    GOOGLE_MODEL = "gemini-3.1-pro-preview"
     MAX_TOKENS = 2000
     TEMPERATURE = 0.0
 
