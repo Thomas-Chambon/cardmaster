@@ -56,7 +56,7 @@ def render_sidebar():
     st.sidebar.header("Technical Stack")
     st.sidebar.markdown("""
     * **Framework:** [LangChain](https://www.langchain.com/)
-    * **LLMs:** Mistral AI (`mistral-large-latest`) & OpenAI (`gpt-4.1`) (HuggingFace)
+    * **LLMs:** Mistral AI (`mistral-large-latest`) & OpenAI (`gpt-5.2`) & Google (`gemini-3.1-pro-preview`)
     * **Vector Database:** [ChromaDB](https://www.trychroma.com/) (Persistent storage)
     * **Embeddings:** `Qwen/Qwen3-Embedding-8B` (HuggingFace)
     * **UI:** [Streamlit](https://streamlit.io/)
@@ -105,7 +105,7 @@ def render_model_selector():
     """
     llm_choice = st.selectbox(
         "Please select the language model",
-        ("Mistral", "OpenAI"),
+        ("Mistral", "OpenAI", "Google"),
         key="llm_user_select"
     )
     return llm_choice
