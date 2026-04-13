@@ -1,9 +1,10 @@
 """LLM service for model management."""
 from langchain_mistralai import ChatMistralAI
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-from .config import ModelConfig, MISTRAL_API_KEY, OPENAI_API_KEY
 
+from .config import ModelConfig, MISTRAL_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY
 
 class LLMService:
     """Service for managing LLM instances."""
@@ -42,7 +43,24 @@ class LLMService:
             temperature=ModelConfig.TEMPERATURE,
             timeout=120
         )
-    
+
+    @staticmethod
+    def get_google_genai_llm() -> ChatGoogleGenerativeAI:
+        """Get Google GenerativeAI LLM instance.
+
+        Returns:
+            Configured Google GenerativeAI LLM."""
+        if not GOOGLE_API_KEY:
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
+
+        return ChatGoogleGenerativeAI(
+            model=ModelConfig.GOOGLE_MODEL,
+            api_key=GOOGLE_API_KEY,
+            max_tokens=ModelConfig.MAX_TOKENS,
+            temperature=ModelConfig.TEMPERATURE,
+            timeout=120
+        )
+
     @staticmethod
     def get_llm(model_choice: str = "Mistral") -> ChatMistralAI:
         """Get LLM based on user choice.
@@ -56,7 +74,8 @@ class LLMService:
         
         model_map = {
             "Mistral": LLMService.get_mistral_llm,
-            "OpenAI": LLMService.get_openai_llm
+            "OpenAI": LLMService.get_openai_llm,
+            "Google": LLMService.get_google_genai_llm,
         }
         
         if model_choice not in model_map:
